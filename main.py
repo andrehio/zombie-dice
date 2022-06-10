@@ -1,7 +1,7 @@
 """
 Zombie Dice Game
-Date: 06/06/2022
-Version: 1.7
+Date: 07/june/2022
+Version: 1.8
 Author: André Hioki
 
 Description: Development in python language of the game zombie dice.
@@ -36,20 +36,16 @@ def fname_players():
 
 
     # ----players' order----
-def forder_players():
+def forder_players(players):
     print("\nPlayer order")
-    player_order = "0"
-    while int(player_order) == 0:
-        player_order = input("Type '1' to keep the players order; or type '2' to shuffle the players order: ")
+    player_order = 0
+    while not (player_order == 1 or player_order == 2):
         try:
-            if int(player_order) > 2:
-                print("Error: Type 1 or 2")
-                player_order = "0"
+            player_order = int(input("Type '1' to keep the players order; or type '2' to shuffle the players order: "))
         except ValueError:
             print("Error! Please enter a number")
-            player_order = "0"
-    if player_order == "2":
-        random.shuffle(name_players)
+    if player_order == 2:
+        random.shuffle(players)
 
 
 # ----Die's face----
@@ -65,6 +61,21 @@ def dice_face(dice):
         color = "\033[31m"
     color += dice + " die\033[m"
     return face, color
+
+
+# ----Print die----
+def print_dice(seq, dice, lock, brains, shotguns):
+    face, color = dice_face(dice)
+    if face == "B":
+        print(f"{seq + 1}) {color}: brain face")
+        brains += 1
+    elif face == "F":
+        print(f"{seq + 1}) {color}: footprint face")
+        lock.append(dice)
+    else:
+        print(f"{seq + 1}) {color}: shotgun face")
+        shotguns += 1
+    return brains, shotguns
 
 
 # ----dice in the shaker cup----
@@ -93,7 +104,7 @@ dice_faces = dice_type(green="BFBSFB", yellow="SFBSFB", red="SFSBFS")
 
 qty_players = fnumber_players()
 name_players = fname_players()
-forder_players()
+forder_players(name_players)
 
 # ----Dict Brains----
 brain_players = {}
@@ -108,7 +119,7 @@ for counter1 in range(qty_players):
     shotgun = 0
     round_option = 0
     turn = 1
-    dice_locked = []
+    dice_locked_footprint = []
 
     print(f"\n\033[1;30;46m------{name_players[counter1]}'s turn------\033[m")
     while round_option < 2:
@@ -117,38 +128,27 @@ for counter1 in range(qty_players):
 
         for counter2 in range(3):
             # ----Check if there was footprint face in the last turn----
-            if round_option == 1 and len(dice_locked) > 0 and counter2 < len(dice_locked):
-                chosen_dice = dice_locked[counter2]
+            if round_option == 1 and len(dice_locked_footprint) > 0 and counter2 < len(dice_locked_footprint):
+                chosen_dice = dice_locked_footprint[counter2]
                 index_dice_random = -1
-                if counter2 == len(dice_locked) - 1:
-                    dice_locked = []
+                if counter2 == len(dice_locked_footprint) - 1:
+                    dice_locked_footprint = []
             else:  # ----take a die----
                 index_dice_random = random.randint(0, len(shaker_cup) - 1)
                 chosen_dice = shaker_cup[index_dice_random]
 
-            chosen_face, dice_color = dice_face(chosen_dice)
-
-            # ----roll the die----
-            if chosen_face == "B":
-                print(f"{counter2 + 1}) {dice_color}: brain face")
-                brain += 1
-            elif chosen_face == "F":
-                print(f"{counter2 + 1}) {dice_color}: footprint face")
-                dice_locked.append(chosen_dice)
-            else:
-                print(f"{counter2 + 1}) {dice_color}: shotgun face")
-                shotgun += 1
+            brain, shotgun = print_dice(counter2, chosen_dice, dice_locked_footprint, brain, shotgun)
 
             if index_dice_random != -1:
                 shaker_cup.pop(index_dice_random)
             time.sleep(1)
-            print(f"Shaker Cup: {shaker_cup} | nº dados: {len(shaker_cup)}")  # teste
+            print(f"Shaker Cup: {shaker_cup} | qty. dice: {len(shaker_cup)}")  # Number of dice in shaker cup
 
         # ----check victory/failure condition and option to continue the turn----
         if shotgun >= 3:
             round_option = 2
             brain = 1
-            current_numbers(brain, len(dice_locked), shotgun)
+            current_numbers(brain, len(dice_locked_footprint), shotgun)
             print(f"\n\033[30;41m------Player {name_players[counter1]} lost!------\033[m")
             time.sleep(2)
         elif brain >= 13 and shotgun < 3:
@@ -156,10 +156,10 @@ for counter1 in range(qty_players):
             print(f"\033[30;42m------Player {name_players[counter1]} won!------\033[m")
         else:
             round_option = 0
+            print("Do you like to stay in your turn and roll new dice?")
             while not (round_option == 1 or round_option == 2):
                 try:
-                    current_numbers(brain, len(dice_locked), shotgun)
-                    print("Do you like to stay in your turn and roll new dice?")
+                    current_numbers(brain, len(dice_locked_footprint), shotgun)
                     round_option = int(input("Type '1' to YES; or type '2' to NO: "))
                 except ValueError:
                     print("\nError! Please enter a number")
