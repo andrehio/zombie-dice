@@ -45,11 +45,15 @@ If you don't have three dice left in the cup, make a note of how many Brains you
 
 ## Features
 
-- [x] Register number of players
-- [x] Register name of players
+- [x] Register the number of players
+- [x] Register the name of players
 - [x] Dice (number, type, faces)
 - [x] Shaker cup with 13 dice
 - [x] Roll the dice
+- [x] Check if there was footprint face in the last turn, and re-roll it.
+- [x] Check victory/failure condition
+- [x] Option to continue or pass the turn
+- [x] Print "Scoreboard"
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
